@@ -1,3 +1,4 @@
+// vim: ts=4:sw=4:et
 /*
 *
 * Copyright 2009-2011 Lockheed Martin Corporation
