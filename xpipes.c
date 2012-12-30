@@ -311,52 +311,52 @@ void *writer_thread(void *arg)
 
 int read_file_into_buffer(char *filter_file, char **filter_buffer)
 {
-	
-			FILE *filter_file_fp;
-			int filter_file_len;
-						
-			//Open file
-			filter_file_fp = fopen(filter_file, "r");
-			if (!filter_file_fp)	
-			{
-				return 0;
-			}
-			
-			
-			//Get file length
-			fseek(filter_file_fp, 0, SEEK_END);
-			filter_file_len=ftell(filter_file_fp);
-			fseek(filter_file_fp, 0, SEEK_SET);
-			
-			//Allocate memory
-			*filter_buffer=(char *)calloc(1,(filter_file_len+1));
-			if (!*filter_buffer)
-			{
-				return 0;
-			}
-			
-			
-			//Read file contents into buffer
-			if (fread(*filter_buffer, filter_file_len, 1, filter_file_fp) != 1)
-			{
-				free(*filter_buffer);
-				return 0;
-			}
-			
-			fclose(filter_file_fp);
-			
-			//Null terminate
-			(*filter_buffer)[filter_file_len] = '\0';
-			
-			
-			return filter_file_len;
+    
+            FILE *filter_file_fp;
+            int filter_file_len;
+                        
+            //Open file
+            filter_file_fp = fopen(filter_file, "r");
+            if (!filter_file_fp)    
+            {
+                return 0;
+            }
+            
+            
+            //Get file length
+            fseek(filter_file_fp, 0, SEEK_END);
+            filter_file_len=ftell(filter_file_fp);
+            fseek(filter_file_fp, 0, SEEK_SET);
+            
+            //Allocate memory
+            *filter_buffer=(char *)calloc(1,(filter_file_len+1));
+            if (!*filter_buffer)
+            {
+                return 0;
+            }
+            
+            
+            //Read file contents into buffer
+            if (fread(*filter_buffer, filter_file_len, 1, filter_file_fp) != 1)
+            {
+                free(*filter_buffer);
+                return 0;
+            }
+            
+            fclose(filter_file_fp);
+            
+            //Null terminate
+            (*filter_buffer)[filter_file_len] = '\0';
+            
+            
+            return filter_file_len;
 }
 
 
 
 int main (int argc, char **argv)
 {
-	
+    
     int i;
     int tmp;
     struct list_element_t *temp_element_p;
@@ -370,14 +370,14 @@ int main (int argc, char **argv)
     pthread_t thread_refs[MAX_NUM_PROCS];
 
 
-	
-	
+    
+    
     //get command line options
     while ((opt = getopt(argc, argv, "hP:c:f:eQ:R:")) != -1)
     {
         switch (opt) 
         {
-		    case 'c':
+            case 'c':
                 command = optarg;
                 break;
             case 'e':
@@ -406,12 +406,12 @@ int main (int argc, char **argv)
                 fprintf(stderr,"Invalid option %c\n", opt);
                 exit(2);
                 break;
-  	
+    
         }
     }
-	
-	
-	//too many args or too few
+    
+    
+    //too many args or too few
     if (argc > optind || argc < 2)
     {
         print_usage();
@@ -423,7 +423,7 @@ int main (int argc, char **argv)
     {
         fprintf(stderr, "You must specify a command to run\n");
         print_usage();
-  	    exit(2);
+        exit(2);
     }
   
     if (consumer_bottleneck_poll_interval < 0)
@@ -457,8 +457,8 @@ int main (int argc, char **argv)
         temp_element_p = (struct list_element_t *) malloc(sizeof(struct list_element_t));
         if (temp_element_p == NULL)
         {     
-  	        fprintf(stderr, "Malloc failed.\n");
-  	        exit(2);
+            fprintf(stderr, "Malloc failed.\n");
+            exit(2);
         }
         list_add(&free_list, temp_element_p);
     }
@@ -472,7 +472,7 @@ int main (int argc, char **argv)
         if (tmp != 0 )
         {    
             fprintf(stderr, "pthread create failed for proc %i with return value of: %i.\n", i, tmp);
-  	        exit(2);
+            exit(2);
         }
     }
 
@@ -511,14 +511,14 @@ int main (int argc, char **argv)
         }
         
     }
-	
-	//wait for ready_list to empty
-	while(list_length(&ready_list) > 0)
-	{
-	    signal_data_ready();
-	}
-	
-	input_done = 1;
+    
+    //wait for ready_list to empty
+    while(list_length(&ready_list) > 0)
+    {
+        signal_data_ready();
+    }
+    
+    input_done = 1;
 
     
     //make sure no one is stuck on condition variable
@@ -535,6 +535,6 @@ int main (int argc, char **argv)
 
     exit(0);
 
-}	
+}   
 
 
