@@ -100,7 +100,6 @@
 //99 for extended output
 #define METADATA_MAX 200
 
-
 //global vars,Defaults
 //for getopt
 extern int optind;
@@ -124,15 +123,11 @@ unsigned long int closed_connections_reset = 0;
 unsigned long int closed_connections_timeout = 0;
 unsigned long int closed_connections_idle = 0;
 unsigned long int closed_connections_exit = 0;
-
 unsigned long int closed_connections_limit = 0;
 unsigned long int closed_connections_poll = 0;
 unsigned long int closed_connections_bsf = 0;
-
-
 unsigned long int max_connections = 0;
 unsigned long int collected_bytes = 0;
-
 unsigned long int pcap_stats_total_recv = 0;
 unsigned long int pcap_stats_total_drop = 0;
 u_int pcap_stats_last_recv = 0;
@@ -141,9 +136,6 @@ u_int pcap_stats_last_drop = 0;
 //realloc_copy
 //unsigned long int realloc_copy_count = 0;
 //unsigned long int realloc_copy_bytes = 0;
-
-
-
 
 int poll_rate = 1;
 //for BPF
@@ -189,7 +181,6 @@ unsigned int conn_ring_poll_interval = 10000;
 //adding notion of state of vortex program run. 0 => intialization, 1 => stream collection and processing, 2 => dump remaining streams, 3 => other cleanup (wait for error and stats threads to finish, etc)
 int program_state = 0;
 
-
 //thread priorities--yes even vortex has priorities
 int capture_prio = -15;
 int other_prio = 10;
@@ -227,8 +218,6 @@ float realloc_increase_factor = 2;
 //threshold above which increase isn't based on factor anymore, buffer is resized to SIZE_MAX then never increased again
 size_t realloc_increase_threshold = 0;
 
-
-
 //struct used for each connection we follow
 struct conn_param
 {
@@ -253,7 +242,6 @@ struct conn_param
   
 };
 
-
 //struct of errors
 struct error_stats
 {
@@ -274,7 +262,6 @@ struct error_stats
     unsigned int other;
 };
 
-
 //List of every connection is maintained (to allow efficient timeouts)
 //The list is ordered by last activity (NIDS_DATA) for the connection, with head pointing to most stale connection
 
@@ -292,6 +279,7 @@ void add_conn_tcp(struct conn_param *item)
         item->prev_conn = tcp_tail;
         tcp_tail->next_conn = item; 
     }
+
     item->next_conn = NULL;
     tcp_tail = item;
 }
@@ -324,7 +312,6 @@ void bump_conn_tcp(struct conn_param *item)
     rem_conn_tcp(item);
     add_conn_tcp(item);
 }
-
 
 //return number of entries in ring
 //this should be safe to call from any thread with the caveat that it is only so accurate...
@@ -367,7 +354,6 @@ int ring_full()
     }
 }
 
-
 //return 1 if ring is empty (0 entries), 0 if it is not empty
 int ring_empty()
 {
@@ -379,6 +365,7 @@ int ring_empty()
         return 0;
     }
 }
+
 //adds and entry to the ring. ring had better be intialized and not full when this is called. Obviously, only called by capture thread.
 void ring_add(struct conn_param *a_conn)
 {
@@ -402,7 +389,6 @@ struct conn_param *ring_remove()
     }
     return a_conn;
 }
-
 
 /*
     So this funkiness deserves a little extra documentation:
@@ -517,6 +503,7 @@ void flow_name(int conn_proto, unsigned long int conn_id, unsigned int conn_star
     //METADATA_MAX must be updated if this is updated!
     buf[0]='\0';
     char close_state = 'c';
+
     if (extended_output)
     {
         if (conn_proto == 17)
@@ -531,7 +518,6 @@ void flow_name(int conn_proto, unsigned long int conn_id, unsigned int conn_star
         
         switch (conn_close_state)
         {
-        
             case NIDS_CLOSE:
                 close_state='c';
                 break;
@@ -576,6 +562,7 @@ void flow_name(int conn_proto, unsigned long int conn_id, unsigned int conn_star
         strcat (buf, int_ntoa (addr.daddr));
         sprintf (buf + strlen (buf), ":%i", addr.dest);
     }
+
     return;
 }
 
@@ -586,10 +573,12 @@ void data_filename(int conn_proto, unsigned long int conn_id, unsigned int conn_
     char flow_str[METADATA_MAX]; //for flow identifier
     strcpy (buf, temp_data_dir);
     dirstr_len = strlen(buf);
+
     if ((dirstr_len != 0) && (buf[dirstr_len-1] != '/') )
     {
         strcat(buf + dirstr_len, "/");
     }
+
     flow_name(conn_proto, conn_id, conn_start, conn_end, conn_close_state, addr, direction, s_size, c_size, flow_str);
     strcat(buf,flow_str);
     return;
@@ -600,7 +589,6 @@ void data_filename(int conn_proto, unsigned long int conn_id, unsigned int conn_
 //buffer is 1 byte longer than file so that buffer can be null terminated. Null char is not included in byte count returned
 int read_file_into_buffer(char *filter_file, char **filter_buffer)
 {
-    
     FILE *filter_file_fp;
     int filter_file_len;
                         
@@ -628,11 +616,9 @@ int read_file_into_buffer(char *filter_file, char **filter_buffer)
         return 0;
     }
 
-
     //Read file contents into buffer
     if (fread(*filter_buffer, filter_file_len, 1, filter_file_fp) != 1)
     {
-
         WARN("Couldn't read file: %s",filter_file);
         free(*filter_buffer);
         return 0;
@@ -646,11 +632,7 @@ int read_file_into_buffer(char *filter_file, char **filter_buffer)
     return filter_file_len;
 }
 
-
-
-
 // Disable checksum feature of libnids 
-
 void disable_chksum_ctl()
 {
     static struct nids_chksum_ctl ctl;
@@ -661,9 +643,7 @@ void disable_chksum_ctl()
     nids_register_chksum_ctl(&ctl, 1);
 }
 
-
 //function used to dump error counts
-
 void print_errors()
 {
     DEBUG(0,"VORTEX_ERRORS TOTAL: %u IP_SIZE: %u IP_FRAG: %u IP_HDR: %u IP_SRCRT: %u TCP_LIMIT: %u TCP_HDR: %u TCP_QUE: %u TCP_FLAGS: %u UDP_ALL: %u SCAN_ALL: %u VTX_RING: %u VTX_IO: %u VTX_MEM: %u OTHER: %u", errors.total, errors.ip_size, errors.ip_frag, errors.ip_hdr, errors.ip_srcrt, errors.tcp_limit, errors.tcp_hdr, errors.tcp_queue, errors.tcp_flags, errors.udp_all, errors.scan_all, errors.vtx_ring, errors.vtx_io, errors.vtx_mem, errors.other);
@@ -692,24 +672,22 @@ void *errors_thread(void *arg)
     }
     
     error_thread_init = 1;
-    
         
     while ((error_interval > 0) && (program_state < 3))
     {
         print_errors();
         sleep(error_interval);
     } 
+
     pthread_exit(NULL);
 }
 
 //function that actually does the output of stats
-
 void print_stats()
 {
     struct pcap_stat pcap_dev_stats;
     pcap_dev_stats.ps_recv = 0;
     pcap_dev_stats.ps_drop = 0;
-    
     
     if (nids_params.pcap_desc != NULL)
     {
@@ -747,6 +725,7 @@ void print_stats()
     
         }   
     }
+
     DEBUG(0,"VORTEX_STATS PCAP_RECV: %lu PCAP_DROP: %lu VTX_BYTES: %lu VTX_EST: %lu VTX_WAIT: %i VTX_CLOSE_TOT: %lu VTX_CLOSE: %lu VTX_LIMIT: %lu VTX_POLL: %lu VTX_TIMOUT: %lu VTX_IDLE: %lu VTX_RST: %lu VTX_EXIT: %lu VTX_BSF: %lu",pcap_stats_total_recv, pcap_stats_total_drop, collected_bytes, connection_id, ring_entries(), closed_connections, closed_connections_close, closed_connections_limit, closed_connections_poll, closed_connections_timeout, closed_connections_idle, closed_connections_reset, closed_connections_exit, closed_connections_bsf );
 }
 
@@ -771,6 +750,7 @@ void *stats_thread(void *arg)
             WARN("Couldn't set processor affinity for stats thread");
         }
     }
+
     stats_thread_init = 1;
     
     while ( (stats_interval > 0) &&  (program_state < 3) )
@@ -778,9 +758,9 @@ void *stats_thread(void *arg)
         print_stats();
         sleep(stats_interval);
     } 
+
     pthread_exit(NULL);
 }
-
 
 //Free the malloc'd buffers associated with a connection
 void free_connection(struct conn_param *a_conn)
@@ -789,10 +769,12 @@ void free_connection(struct conn_param *a_conn)
     {
         free(a_conn->to_server_data_p);
     }
+
     if (a_conn->to_client_data_p != NULL)
     {
         free(a_conn->to_client_data_p);
     }
+
     free(a_conn);
 }
 
@@ -806,7 +788,6 @@ void dump_stream(struct conn_param *a_conn)
     struct timeval system_time;
     char server_ip_string[INET6_ADDRSTRLEN+1];
     char client_ip_string[INET6_ADDRSTRLEN+1];
-    //
 
     //these values used from timestomping
     struct timeval stomp_times[2];
@@ -847,6 +828,7 @@ void dump_stream(struct conn_param *a_conn)
                     WARN("Couldn't write %zu bytes to server data file: %s, skipping", a_conn->to_server_data_size, temp_filename);
                 }
             }
+
             fclose(a_conn->to_server_data_fp);
 
             if (stomp_temp_file_timestamps)
@@ -892,6 +874,7 @@ void dump_stream(struct conn_param *a_conn)
                     WARN("Couldn't write %zu bytes to client data file: %s, skipping", a_conn->to_client_data_size, temp_filename);
                 }
             }   
+
             fclose(a_conn->to_client_data_fp);
             
             if (stomp_temp_file_timestamps)
@@ -927,7 +910,6 @@ void dump_stream(struct conn_param *a_conn)
     free_connection(a_conn);
 }
 
-
 //Thread for writing stream data
 void *conn_writer(void *arg)
 {
@@ -937,7 +919,7 @@ void *conn_writer(void *arg)
         WARN("Couldn't set output thread priority!");
     }
   
-  //ok, now lock to a specific processor
+    //ok, now lock to a specific processor
     if (other_cpu >= 0)
     {
         cpu_set_t csmask;
@@ -948,6 +930,7 @@ void *conn_writer(void *arg)
             WARN("Couldn't set processor affinity for output thread");
         }
     }
+
     output_thread_init = 1;
   
     while(program_state < 3)
@@ -957,6 +940,7 @@ void *conn_writer(void *arg)
         {
             dump_stream(ring_remove());
         }
+
         if ((program_state == 2) && (ring_empty()))
         {
             //give ourselves time to ensure all connections have been put into ring
@@ -968,17 +952,16 @@ void *conn_writer(void *arg)
             }
         }
     }
+
     pthread_exit(NULL);
 }
 
 void close_connection(struct conn_param *a_conn, char close_reason)
 {   
-        
     //these vars only used for debugging
     struct timeval system_time;
     char server_ip_string[INET6_ADDRSTRLEN+1];
     char client_ip_string[INET6_ADDRSTRLEN+1];
-    //
 
     //pthread_t thread_h;
     //int pthread_rc;
@@ -989,7 +972,6 @@ void close_connection(struct conn_param *a_conn, char close_reason)
     {
         return;
     }
-
 
     //do debuging for new streams
     if (debug_level >= 110)
@@ -1004,7 +986,6 @@ void close_connection(struct conn_param *a_conn, char close_reason)
 
     a_conn->close_state = close_reason;
     rem_conn_tcp(a_conn);
-
 
     //block here if we are reading from pcap, no reason to drop packets.....
     if (nids_params.filename != NULL)
@@ -1026,12 +1007,10 @@ void close_connection(struct conn_param *a_conn, char close_reason)
         ring_add(a_conn);
     } 
 
-
     closed_connections++;
 
     switch (close_reason)
     {
-
         case NIDS_CLOSE:
             closed_connections_close++;
             break;
@@ -1061,11 +1040,9 @@ void close_connection(struct conn_param *a_conn, char close_reason)
         //wait_for_other_threads();
         //TODO: make this ending a little less abrupt
 
-
         DIE("Stopping after %lu connections", max_connections)      
     }
 }
-
 
 int filter_stream_bsf(struct tcp_stream *a_tcp)
 {
@@ -1083,7 +1060,6 @@ int filter_stream_bsf(struct tcp_stream *a_tcp)
 #endif
 }
 
-
 void tcp_callback (struct tcp_stream *a_tcp, struct conn_param **conn_param_ptr)
 {
     //these vars only used for debugging
@@ -1096,7 +1072,6 @@ void tcp_callback (struct tcp_stream *a_tcp, struct conn_param **conn_param_ptr)
 
     char *realloc_old_ptr = NULL;
     size_t realloc_old_size = 0;
-
 
     if (debug_level >= 150)
     {
@@ -1113,14 +1088,12 @@ void tcp_callback (struct tcp_stream *a_tcp, struct conn_param **conn_param_ptr)
         }
     }
 
-
     //short circuit if we are done
     if (program_state > 1)
     {
         nids_exit();
         return;
     }
-
 
     if (a_tcp->nids_state != NIDS_EXITING)
     {
@@ -1142,11 +1115,8 @@ void tcp_callback (struct tcp_stream *a_tcp, struct conn_param **conn_param_ptr)
         }
     }
 
-
-
     if (a_tcp->nids_state == NIDS_JUST_EST)
     {
-
         connection_id++;
 
         //do debuging for new streams
@@ -1160,9 +1130,7 @@ void tcp_callback (struct tcp_stream *a_tcp, struct conn_param **conn_param_ptr)
             DEBUG(111, "New connection: %lu, conn: %s:%i-%s:%i, system time: %lu.%06lu, pcap_time: %lu.%06lu", connection_id, client_ip_string, a_tcp->addr.source, server_ip_string, a_tcp->addr.dest, system_time.tv_sec, system_time.tv_usec, nids_last_pcap_header->ts.tv_sec, nids_last_pcap_header->ts.tv_usec);
         }
 
-
         //Filtering First
-
         if (bsf_enabled)
         {
             if (filter_stream_bsf(a_tcp))
@@ -1177,7 +1145,6 @@ void tcp_callback (struct tcp_stream *a_tcp, struct conn_param **conn_param_ptr)
                 return;
             }
         }
-
 
         //Polling
         if (connection_id % poll_rate == 0)
@@ -1203,8 +1170,6 @@ void tcp_callback (struct tcp_stream *a_tcp, struct conn_param **conn_param_ptr)
                 return;
             }
 
-
-
             if ((collection == VORTEX_DIRECTION_TO_SERVER) || (collection == VORTEX_DIRECTION_TO_BOTH))
             {
                 a_tcp->server.collect++; // we want data received by client (to server)
@@ -1214,29 +1179,27 @@ void tcp_callback (struct tcp_stream *a_tcp, struct conn_param **conn_param_ptr)
                 a_tcp->client.collect++; // we want data received by server (to client)
             }
 
-
-
             *conn_param_ptr=a_conn;
 
             //set id information    
             a_conn->id=connection_id;
             memcpy (&a_conn->addr, &a_tcp->addr, sizeof(struct tuple4));
-
             a_conn->nids_stream = a_tcp;
+
             //add to timeout list
             add_conn_tcp(a_conn);
-
-            //DEBUG(400, "Flow %d Established: %s\n", a_conn->id, connection_string);
 
             //Set the data sizes to 0 (collecting or not)
             a_conn->to_server_data_size = 0;
             a_conn->to_server_data_size_exceeded = 0;
             a_conn->to_client_data_size = 0;         
             a_conn->to_client_data_size_exceeded = 0;   
+
             //set the data pointers to null (collecting or not)
             a_conn->to_server_data_p = NULL;
             a_conn->to_client_data_p = NULL;
             a_conn->close_state = 0;
+
             //TODO: change this to time
             a_conn->start = last_timestamp;
             a_conn->last_activity = last_timestamp;
@@ -1244,7 +1207,6 @@ void tcp_callback (struct tcp_stream *a_tcp, struct conn_param **conn_param_ptr)
             //
             a_conn->to_server_buffer_size = 0;
             a_conn->to_client_buffer_size = 0;
-
         } else 
         {
             //This is not a polled connection, close it!
@@ -1268,10 +1230,7 @@ void tcp_callback (struct tcp_stream *a_tcp, struct conn_param **conn_param_ptr)
     //CLOSE, RESET, TIMED_OUT, EXITING
     if ( (a_tcp->nids_state == NIDS_CLOSE) || (a_tcp->nids_state == NIDS_RESET) || (a_tcp->nids_state == NIDS_TIMED_OUT) || (a_tcp->nids_state == NIDS_EXITING) )
     {
-
-
         //fprintf (stderr, "Connection %d Closed\n", a_conn->id);
-
         close_connection(a_conn, a_tcp->nids_state);
 
         return;
@@ -1281,22 +1240,25 @@ void tcp_callback (struct tcp_stream *a_tcp, struct conn_param **conn_param_ptr)
     {
         a_conn->last_activity = last_timestamp;
         bump_conn_tcp(a_conn);
+
         if ((a_tcp->client.count_new) && ((collection == VORTEX_DIRECTION_TO_CLIENT) || (collection == VORTEX_DIRECTION_TO_BOTH))) //probably ought to check if we are colleting also
         {
-
             //see if buffer needs to be realloc'd
             if ( a_tcp->client.count_new+a_conn->to_client_data_size > a_conn->to_client_buffer_size )
             {
                 realloc_old_ptr = a_conn->to_client_data_p;
                 realloc_old_size = a_conn->to_client_buffer_size;
+
                 if (realloc_increase_percent == 0 )
                 {
                     a_conn->to_client_buffer_size = a_conn->to_client_data_size + a_tcp->client.count_new;
                 }
+
                 if ( a_conn->to_client_buffer_size == 0 )
                 {
                     a_conn->to_client_buffer_size = base_realloc_size;
                 }        
+
                 while ( a_tcp->client.count_new+a_conn->to_client_data_size > a_conn->to_client_buffer_size )
                 {
                     if ( a_conn->to_client_buffer_size >= realloc_increase_threshold )
@@ -1307,6 +1269,7 @@ void tcp_callback (struct tcp_stream *a_tcp, struct conn_param **conn_param_ptr)
                         a_conn->to_client_buffer_size *= realloc_increase_factor;
                     }
                 }
+
                 a_conn->to_client_data_p = realloc(a_conn->to_client_data_p,a_conn->to_client_buffer_size);
 
                 //not used
@@ -1335,8 +1298,6 @@ void tcp_callback (struct tcp_stream *a_tcp, struct conn_param **conn_param_ptr)
                 collected_bytes += (unsigned long int)a_tcp->client.count_new;
             }       
 
-
-
             //check if connection collection size has been exceeded
             if (a_conn->to_client_data_size >= to_client_data_size_limit )
             {
@@ -1354,22 +1315,25 @@ void tcp_callback (struct tcp_stream *a_tcp, struct conn_param **conn_param_ptr)
 
             } 
         }
+
         if ((a_tcp->server.count_new) && ((collection == VORTEX_DIRECTION_TO_SERVER) || (collection == VORTEX_DIRECTION_TO_BOTH)))
         {
-
             //see if buffer needs to be realloc'd
             if ( a_tcp->server.count_new+a_conn->to_server_data_size > a_conn->to_server_buffer_size )
             {
                 realloc_old_ptr = a_conn->to_server_data_p;
                 realloc_old_size = a_conn->to_server_buffer_size;
+
                 if (realloc_increase_percent == 0 )
                 {
                     a_conn->to_server_buffer_size = a_conn->to_server_data_size + a_tcp->server.count_new;
                 }
+
                 if ( a_conn->to_server_buffer_size == 0 )
                 {
                     a_conn->to_server_buffer_size = base_realloc_size;
                 }    
+
                 while ( a_tcp->server.count_new+a_conn->to_server_data_size > a_conn->to_server_buffer_size )
                 {
                     if ( a_conn->to_server_buffer_size >= realloc_increase_threshold )
@@ -1380,6 +1344,7 @@ void tcp_callback (struct tcp_stream *a_tcp, struct conn_param **conn_param_ptr)
                         a_conn->to_server_buffer_size *= realloc_increase_factor;
                     }
                 }
+
                 a_conn->to_server_data_p = realloc(a_conn->to_server_data_p,a_conn->to_server_buffer_size);
 
                 //not used
@@ -1389,7 +1354,6 @@ void tcp_callback (struct tcp_stream *a_tcp, struct conn_param **conn_param_ptr)
                 //    realloc_copy_bytes += a_conn->to_server_data_size;    
                 //}
             }    
-
 
             //copy server data to connection buffer
             if (a_conn->to_server_data_p == NULL)
@@ -1413,6 +1377,7 @@ void tcp_callback (struct tcp_stream *a_tcp, struct conn_param **conn_param_ptr)
             {
                 a_conn->to_server_data_size_exceeded += (a_conn->to_server_data_size - to_server_data_size_limit);
                 DEBUG(500, "Server max collection size exceeded for connection %lu by %d bytes\n", a_conn->id, a_conn->to_server_data_size_exceeded );
+
                 //disable further data collection
                 a_tcp->server.collect--;
 
@@ -1422,12 +1387,11 @@ void tcp_callback (struct tcp_stream *a_tcp, struct conn_param **conn_param_ptr)
                     DEBUG(500,"Closing Connection %lu becuase size limits reached", a_conn->id)
                         close_connection(a_conn, VORTEX_SIZE_LIMIT_REACHED);
                 }
-
             }
-
         }
 
         return;    
+
     }//end of NIDS_DATA
 
     //Should never get here
@@ -1461,7 +1425,6 @@ int main (int argc, char **argv)
     errors.vtx_mem = 0;
     errors.other = 0;
 
-
     logging_name = "Vortex";
 
     DEBUG(50, "Starting up Vortex");
@@ -1472,7 +1435,6 @@ int main (int argc, char **argv)
 
     nids_params.n_tcp_streams = 1048576;
     nids_params.n_hosts = 65536;
-
 
     //parse command line options
     DEBUG(100, "Parsing Commnad Line Options");
@@ -1710,7 +1672,6 @@ int main (int argc, char **argv)
         }
     }
 
-
     //open syslog connection
     openlog(logging_name, 0, LOG_LOCAL0);
 
@@ -1742,7 +1703,6 @@ int main (int argc, char **argv)
 
         if (filter_file != NULL)
         {
-
             //Load filter from file
 
             if (read_file_into_buffer(filter_file, &filter_string) == 0)
@@ -1754,9 +1714,7 @@ int main (int argc, char **argv)
 
         nids_params.pcap_filter = filter_string;
         DEBUG(300, "Using packet filter: %s", filter_string);
-
     }
-
 
 #ifdef WITH_BSF  
     //now deal with bsf style filter
@@ -1813,7 +1771,6 @@ int main (int argc, char **argv)
         collection = VORTEX_DIRECTION_TO_CLIENT;
     }
 
-
     //TODO:
     //check that temp dir exists
 
@@ -1838,9 +1795,8 @@ int main (int argc, char **argv)
     if (nids_params.device != NULL)
     {
         pcap_err_buf[0] = '\0';
-
-
         desc = pcap_open_live(nids_params.device, snap_len, nids_params.promisc, nids_params.pcap_timeout, pcap_err_buf);
+
         if (desc == NULL)
         {
             DIE("Couldn't open device (%s) for packet capture: %s",nids_params.device,pcap_err_buf);        
@@ -1850,7 +1806,6 @@ int main (int argc, char **argv)
             nids_params.pcap_desc = desc;
         }
     }
-
 
     if (poll_rate < 1)
     {
@@ -1864,12 +1819,12 @@ int main (int argc, char **argv)
     {
         DIE("Couldn't intialize connection ring of size: %i", conn_ring_size);
     }
+
     //start stream writer thread
     if( (pthread_rc = pthread_create(&writer_thread_h, NULL, conn_writer, NULL)) )
     {
         DIE("Error starting stream writer thread. return code from pthread_create() is %d\n", pthread_rc);
     }
-
 
     //start stats threads
     if (stats_interval > 0)
@@ -1891,8 +1846,6 @@ int main (int argc, char **argv)
         }
     }
 
-
-
     //set priority for capture thread before we drop priveledges
     //This is most likely not portable......
     if (setpriority(PRIO_PROCESS, gettid(), capture_prio) != 0) 
@@ -1911,9 +1864,9 @@ int main (int argc, char **argv)
             WARN("Couldn't set processor affinity for capture thread");
         }
     }
+
     //Disable Port Scan Detection
     nids_params.scan_num_hosts=0;
-
 
     DEBUG(100,"Using LIBNIDS version %i.%i\n",NIDS_MAJOR,NIDS_MINOR);
 
@@ -1921,7 +1874,6 @@ int main (int argc, char **argv)
     {
         DIE("libNIDS init failed: %s",nids_errbuf);
     }
-
 
     //wait for other threads to init before dropping priveledges
     while(!output_thread_init)
@@ -1939,7 +1891,6 @@ int main (int argc, char **argv)
         usleep(conn_ring_poll_interval);
     }
 
-
     //do setuid here!
     //Notice, this program is not designed to be safe on non-linux systems nor be safe as an setuid program.
     if (user != NULL)
@@ -1955,20 +1906,24 @@ int main (int argc, char **argv)
         {
             DIE("Could not look up user_id for %s", user);
         }
+
         //look up additional groups (extra credit)
         if (initgroups(user, pw_entry->pw_gid))
         {
             DIE("Could not look up additional groups for %s", user);
         }
+
         //Actually setuid and setgid
         if (setgid(pw_entry->pw_gid))
         {
             DIE("Could not setgid for %s", user);
         }
+
         if (setuid(pw_entry->pw_uid))
         {
             DIE("Could not setuid to %s", user);
         }
+
         /* Make sure both effective and real user and group were set correctly */
         if ((getuid() != pw_entry->pw_uid) || (geteuid() != pw_entry->pw_uid) || (getgid() != pw_entry->pw_gid) || (getegid() != pw_entry->pw_gid))
         {
@@ -1976,13 +1931,11 @@ int main (int argc, char **argv)
         }
     }
 
-
     nids_register_tcp(tcp_callback);
     program_state = 1;
     nids_run();
     program_state = 2;
     DEBUG(30,"Libnids Run Finished");
-
 
 #ifdef WITH_BSF
     if (bsf_enabled)
@@ -1990,10 +1943,9 @@ int main (int argc, char **argv)
         bsf_destroy(bsf_desc);
     }
 #endif
+
     //Wait for all the other threads to exit before exiting
     //wait_for_other_threads();
-
-
     pthread_join(writer_thread_h, NULL);
     if (error_interval > 0)
     {
@@ -2002,24 +1954,28 @@ int main (int argc, char **argv)
     {
         //Provide some useful output/feedback to users.
         print_errors();
+
         if ( errors.tcp_limit > 0)
         {
             WARN("Hint--TCP_LIMIT: Streams dropped due to insufficient connection hash table. Consider increasing connection hash size (-s).");
         }
+
         if ( errors.tcp_queue > 0)
         {
             WARN("Hint--TCP_QUEUE: Investigate possible packet loss (if PCAP_LOSS is 0 check ifconfig for RX dropped).");
         }
+
         if ( errors.tcp_hdr > connection_id)
         {
             WARN("Hint--TCP_HDR: Possible checksum failures? See disable checksum option (-k).");
         }
+
         if ( errors.vtx_ring > 0)
         {
             WARN("Hint--VTX_RING: Streams dropped due to insufficent stream ring buffer. Try increasing ring size (-Q) and/or decreasing poll interval (-R) or increaseing speed of temp dir (-t) (ex. use /dev/shm instead of disk).");
         }
-
     }
+
     if (stats_interval > 0)
     {
         pthread_join(stats_thread_h, NULL);
@@ -2032,9 +1988,7 @@ int main (int argc, char **argv)
         {
             WARN("Hint--VTX_LIMIT: Streams truncated due to size limits. If not desired, adjust stream size limits accordingly (-C, -S).");
         }
-
     }
-
 
     return 0;
 }
