@@ -39,7 +39,7 @@
 
 #ifdef linux
 #include <syscall.h>
-#else
+#elif defined(__FreeBSD__)
 #include <sys/param.h>
 #include <sys/cpuset.h>
 typedef cpuset_t cpu_set_t;
@@ -75,7 +75,7 @@ typedef cpuset_t cpu_set_t;
 #ifdef linux
 #define my_sched_setaffinity(a,b,c) sched_setaffinity(a, b, c)
 #define gettid() syscall(__NR_gettid)
-#else
+#elif defined(__FreeBSD__)
 #define my_sched_setaffinity(a,b,c) (-1)
 #define gettid() 0
 #endif
