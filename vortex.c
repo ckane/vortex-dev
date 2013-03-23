@@ -39,6 +39,12 @@
 
 #ifdef linux
 #include <syscall.h>
+#else
+#include <sys/param.h>
+#include <sys/cpuset.h>
+typedef cpuset_t cpu_set_t;
+#include <limits.h>
+#define SIZE_MAX SSIZE_MAX
 #endif
 
 #include <unistd.h>
@@ -66,8 +72,13 @@
 #endif
 
 //don't ask me why this isn't in headers?
-#define gettid() syscall(__NR_gettid)
+#ifdef linux
 #define my_sched_setaffinity(a,b,c) sched_setaffinity(a, b, c)
+#define gettid() syscall(__NR_gettid)
+#else
+#define my_sched_setaffinity(a,b,c) (-1)
+#define gettid() 0
+#endif
 
 //TODO LIST:
 
